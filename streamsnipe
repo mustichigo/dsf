@@ -10,41 +10,27 @@ if shared.STREAM_SNIPER then
     shared.STREAM_SNIPER:Destroy()
 end
 
--- Main GUI Creation
+-- Main GUI Creation (Basic Structure)
 local Screenguini = Instance.new("ScreenGui")
 Screenguini.Name = "StreamSniperV2"
 Screenguini.Parent = CoreGui
 Screenguini.ResetOnSpawn = false
 
--- Main Frame with rounded corners simulation and shadow
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = Screenguini
-MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+MainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 65)  -- Gray background
 MainFrame.BorderSizePixel = 0
 MainFrame.Size = UDim2.new(0, 450, 0, 350)
 MainFrame.Position = UDim2.new(0.5, -225, 0.5, -175)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
--- Corner rounding (using UICorner)
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 12)
 UICorner.Parent = MainFrame
 
--- Shadow effect (simple frame behind)
-local Shadow = Instance.new("Frame")
-Shadow.Name = "Shadow"
-Shadow.Parent = MainFrame
-Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-Shadow.BackgroundTransparency = 0.7
-Shadow.BorderSizePixel = 0
-Shadow.Size = UDim2.new(1, 10, 1, 10)
-Shadow.Position = UDim2.new(0, -5, 0, -5)
-Shadow.ZIndex = MainFrame.ZIndex - 1
-local ShadowCorner = Instance.new("UICorner")
-ShadowCorner.CornerRadius = UDim.new(0, 12)
-ShadowCorner.Parent = Shadow
+-- Shadow removed, replaced with subtle gray border effect if needed, but keeping clean
 
 -- Title Bar
 local TitleBar = Instance.new("Frame")
@@ -78,7 +64,7 @@ CloseButton.BackgroundTransparency = 1
 CloseButton.Size = UDim2.new(0, 30, 0, 30)
 CloseButton.Position = UDim2.new(1, -40, 0, 10)
 CloseButton.Font = Enum.Font.GothamBold
-CloseButton.Text = "X"
+CloseButton.Text = "✕"
 CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseButton.TextSize = 20
 CloseButton.ZIndex = 11
@@ -106,298 +92,11 @@ MinimizeButton.MouseButton1Click:Connect(function()
     local targetSize = minimized and UDim2.new(0, 450, 0, 50) or UDim2.new(0, 450, 0, 350)
     TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = targetSize}):Play()
     for _, child in ipairs(MainFrame:GetChildren()) do
-        if child ~= TitleBar and child ~= Shadow and child ~= UICorner then
+        if child ~= TitleBar and child ~= UICorner then
             child.Visible = not minimized
         end
     end
 end)
-
--- Content Scrolling Frame
-local ContentScroll = Instance.new("ScrollingFrame")
-ContentScroll.Name = "ContentScroll"
-ContentScroll.Parent = MainFrame
-ContentScroll.BackgroundTransparency = 1
-ContentScroll.BorderSizePixel = 0
-ContentScroll.Position = UDim2.new(0, 0, 0, 50)
-ContentScroll.Size = UDim2.new(1, 0, 1, -100)
-ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 280)
-ContentScroll.ScrollBarThickness = 6
-ContentScroll.ScrollBarImageColor3 = Color3.fromRGB(255, 170, 0)
-ContentScroll.ScrollingDirection = Enum.ScrollingDirection.Y
-
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.Parent = ContentScroll
-UIListLayout.Padding = UDim.new(0, 10)
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
--- Input Section
-local InputSection = Instance.new("Frame")
-InputSection.Name = "InputSection"
-InputSection.Parent = ContentScroll
-InputSection.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-InputSection.BorderSizePixel = 0
-InputSection.Size = UDim2.new(1, -20, 0, 120)
-InputSection.LayoutOrder = 1
-
-local InputCorner = Instance.new("UICorner")
-InputCorner.CornerRadius = UDim.new(0, 8)
-InputCorner.Parent = InputSection
-
-local UsernameLabel = Instance.new("TextLabel")
-UsernameLabel.Parent = InputSection
-UsernameLabel.BackgroundTransparency = 1
-UsernameLabel.Size = UDim2.new(1, 0, 0, 25)
-UsernameLabel.Position = UDim2.new(0, 10, 0, 5)
-UsernameLabel.Font = Enum.Font.Gotham
-UsernameLabel.Text = "👤 Target Username / UserID:"
-UsernameLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-UsernameLabel.TextSize = 14
-UsernameLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-local UsernameBox = Instance.new("TextBox")
-UsernameBox.Name = "UsernameBox"
-UsernameBox.Parent = InputSection
-UsernameBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-UsernameBox.BorderSizePixel = 0
-UsernameBox.Position = UDim2.new(0, 10, 0, 35)
-UsernameBox.Size = UDim2.new(1, -20, 0, 35)
-UsernameBox.Font = Enum.Font.Gotham
-UsernameBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
-UsernameBox.PlaceholderText = "Enter Username or UserID (e.g., 'PlayerName' or 123456)"
-UsernameBox.Text = ""
-UsernameBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-UsernameBox.TextSize = 16
-UsernameBox.ClearTextOnFocus = false
-
-local UsernameCorner = Instance.new("UICorner")
-UsernameCorner.CornerRadius = UDim.new(0, 6)
-UsernameCorner.Parent = UsernameBox
-
-local PlaceIdLabel = Instance.new("TextLabel")
-PlaceIdLabel.Parent = InputSection
-PlaceIdLabel.BackgroundTransparency = 1
-PlaceIdLabel.Size = UDim2.new(1, 0, 0, 25)
-PlaceIdLabel.Position = UDim2.new(0, 10, 0, 75)
-PlaceIdLabel.Font = Enum.Font.Gotham
-PlaceIdLabel.Text = "🎮 Place ID (Leave blank for current):"
-PlaceIdLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-PlaceIdLabel.TextSize = 14
-PlaceIdLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-local PlaceIdBox = Instance.new("TextBox")
-PlaceIdBox.Name = "PlaceIdBox"
-PlaceIdBox.Parent = InputSection
-PlaceIdBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-PlaceIdBox.BorderSizePixel = 0
-PlaceIdBox.Position = UDim2.new(0, 10, 0, 105)
-PlaceIdBox.Size = UDim2.new(1, -20, 0, 35)
-PlaceIdBox.Font = Enum.Font.Gotham
-PlaceIdBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
-PlaceIdBox.PlaceholderText = "Enter PlaceID or leave empty for current game"
-PlaceIdBox.Text = ""
-PlaceIdBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-PlaceIdBox.TextSize = 16
-PlaceIdBox.ClearTextOnFocus = false
-
-local PlaceIdCorner = Instance.new("UICorner")
-PlaceIdCorner.CornerRadius = UDim.new(0, 6)
-PlaceIdCorner.Parent = PlaceIdBox
-
--- Settings Section (Fixed layout - yan yana for threads and max servers)
-local SettingsSection = Instance.new("Frame")
-SettingsSection.Name = "SettingsSection"
-SettingsSection.Parent = ContentScroll
-SettingsSection.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-SettingsSection.BorderSizePixel = 0
-SettingsSection.Size = UDim2.new(1, -20, 0, 80)
-SettingsSection.LayoutOrder = 2
-
-local SettingsCorner = Instance.new("UICorner")
-SettingsCorner.CornerRadius = UDim.new(0, 8)
-SettingsCorner.Parent = SettingsSection
-
--- Threads part (left side)
-local ThreadsFrame = Instance.new("Frame")
-ThreadsFrame.Parent = SettingsSection
-ThreadsFrame.BackgroundTransparency = 1
-ThreadsFrame.Size = UDim2.new(0.5, -5, 1, 0)
-ThreadsFrame.Position = UDim2.new(0, 10, 0, 5)
-
-local ThreadsLabel = Instance.new("TextLabel")
-ThreadsLabel.Parent = ThreadsFrame
-ThreadsLabel.BackgroundTransparency = 1
-ThreadsLabel.Size = UDim2.new(1, 0, 0.5, 0)
-ThreadsLabel.Position = UDim2.new(0, 0, 0, 0)
-ThreadsLabel.Font = Enum.Font.Gotham
-ThreadsLabel.Text = "⚙️ Threads (Parallel Searches):"
-ThreadsLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-ThreadsLabel.TextSize = 14
-ThreadsLabel.TextXAlignment = Enum.TextXAlignment.Left
-ThreadsLabel.TextWrapped = true
-
-local ThreadsBox = Instance.new("TextBox")
-ThreadsBox.Name = "ThreadsBox"
-ThreadsBox.Parent = ThreadsFrame
-ThreadsBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-ThreadsBox.BorderSizePixel = 0
-ThreadsBox.Position = UDim2.new(0, 0, 0.5, 0)
-ThreadsBox.Size = UDim2.new(1, 0, 0.5, 0)
-ThreadsBox.Font = Enum.Font.Gotham
-ThreadsBox.Text = "30"
-ThreadsBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-ThreadsBox.TextSize = 16
-ThreadsBox.ClearTextOnFocus = false
-
-local ThreadsCorner = Instance.new("UICorner")
-ThreadsCorner.CornerRadius = UDim.new(0, 4)
-ThreadsCorner.Parent = ThreadsBox
-
--- Max Servers part (right side)
-local MaxServersFrame = Instance.new("Frame")
-MaxServersFrame.Parent = SettingsSection
-MaxServersFrame.BackgroundTransparency = 1
-MaxServersFrame.Size = UDim2.new(0.5, -5, 1, 0)
-MaxServersFrame.Position = UDim2.new(0.5, 5, 0, 5)
-
-local MaxServersLabel = Instance.new("TextLabel")
-MaxServersLabel.Parent = MaxServersFrame
-MaxServersLabel.BackgroundTransparency = 1
-MaxServersLabel.Size = UDim2.new(1, 0, 0.5, 0)
-MaxServersLabel.Position = UDim2.new(0, 0, 0, 0)
-MaxServersLabel.Font = Enum.Font.Gotham
-MaxServersLabel.Text = "Max Servers to Scan:"
-MaxServersLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-MaxServersLabel.TextSize = 14
-MaxServersLabel.TextXAlignment = Enum.TextXAlignment.Left
-MaxServersLabel.TextWrapped = true
-
-local MaxServersBox = Instance.new("TextBox")
-MaxServersBox.Name = "MaxServersBox"
-MaxServersBox.Parent = MaxServersFrame
-MaxServersBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-MaxServersBox.BorderSizePixel = 0
-MaxServersBox.Position = UDim2.new(0, 0, 0.5, 0)
-MaxServersBox.Size = UDim2.new(1, 0, 0.5, 0)
-MaxServersBox.Font = Enum.Font.Gotham
-MaxServersBox.Text = "1000"
-MaxServersBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-MaxServersBox.TextSize = 16
-MaxServersBox.ClearTextOnFocus = false
-
-local MaxServersCorner = Instance.new("UICorner")
-MaxServersCorner.CornerRadius = UDim.new(0, 4)
-MaxServersCorner.Parent = MaxServersBox
-
--- Target Info Display
-local TargetSection = Instance.new("Frame")
-TargetSection.Name = "TargetSection"
-TargetSection.Parent = ContentScroll
-TargetSection.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-TargetSection.BorderSizePixel = 0
-TargetSection.Size = UDim2.new(1, -20, 0, 120)
-TargetSection.LayoutOrder = 3
-
-local TargetCorner = Instance.new("UICorner")
-TargetCorner.CornerRadius = UDim.new(0, 8)
-TargetCorner.Parent = TargetSection
-
-local TargetTitle = Instance.new("TextLabel")
-TargetTitle.Parent = TargetSection
-TargetTitle.BackgroundTransparency = 1
-TargetTitle.Size = UDim2.new(1, 0, 0, 25)
-TargetTitle.Position = UDim2.new(0, 10, 0, 5)
-TargetTitle.Font = Enum.Font.GothamBold
-TargetTitle.Text = "📊 Target Info"
-TargetTitle.TextColor3 = Color3.fromRGB(255, 170, 0)
-TargetTitle.TextSize = 16
-TargetTitle.TextXAlignment = Enum.TextXAlignment.Left
-
-local UsernameDisplay = Instance.new("TextLabel")
-UsernameDisplay.Name = "UsernameDisplay"
-UsernameDisplay.Parent = TargetSection
-UsernameDisplay.BackgroundTransparency = 1
-UsernameDisplay.Size = UDim2.new(1, -100, 0, 25)
-UsernameDisplay.Position = UDim2.new(0, 10, 0, 35)
-UsernameDisplay.Font = Enum.Font.Gotham
-UsernameDisplay.Text = "Username: Not loaded"
-UsernameDisplay.TextColor3 = Color3.fromRGB(255, 255, 255)
-UsernameDisplay.TextSize = 14
-UsernameDisplay.TextXAlignment = Enum.TextXAlignment.Left
-
-local UserIdDisplay = Instance.new("TextLabel")
-UserIdDisplay.Name = "UserIdDisplay"
-UserIdDisplay.Parent = TargetSection
-UserIdDisplay.BackgroundTransparency = 1
-UserIdDisplay.Size = UDim2.new(1, -100, 0, 25)
-UserIdDisplay.Position = UDim2.new(0, 10, 0, 60)
-UserIdDisplay.Font = Enum.Font.Gotham
-UserIdDisplay.Text = "UserID: Not loaded"
-UserIdDisplay.TextColor3 = Color3.fromRGB(255, 255, 255)
-UserIdDisplay.TextSize = 14
-UserIdDisplay.TextXAlignment = Enum.TextXAlignment.Left
-
--- Avatar Image
-local AvatarImage = Instance.new("ImageLabel")
-AvatarImage.Name = "AvatarImage"
-AvatarImage.Parent = TargetSection
-AvatarImage.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-AvatarImage.BorderSizePixel = 0
-AvatarImage.Position = UDim2.new(1, -110, 0, 35)
-AvatarImage.Size = UDim2.new(0, 90, 0, 90)
-AvatarImage.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
-AvatarImage.ScaleType = Enum.ScaleType.Fit
-AvatarImage.ImageTransparency = 1
-
-local AvatarCorner = Instance.new("UICorner")
-AvatarCorner.CornerRadius = UDim.new(1, 0)
-AvatarCorner.Parent = AvatarImage
-
--- Progress Section
-local ProgressSection = Instance.new("Frame")
-ProgressSection.Name = "ProgressSection"
-ProgressSection.Parent = ContentScroll
-ProgressSection.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-ProgressSection.BorderSizePixel = 0
-ProgressSection.Size = UDim2.new(1, -20, 0, 60)
-ProgressSection.LayoutOrder = 4
-
-local ProgressCorner = Instance.new("UICorner")
-ProgressCorner.CornerRadius = UDim.new(0, 8)
-ProgressCorner.Parent = ProgressSection
-
-local ProgressLabel = Instance.new("TextLabel")
-ProgressLabel.Parent = ProgressSection
-ProgressLabel.BackgroundTransparency = 1
-ProgressLabel.Size = UDim2.new(1, 0, 0, 20)
-ProgressLabel.Position = UDim2.new(0, 10, 0, 5)
-ProgressLabel.Font = Enum.Font.Gotham
-ProgressLabel.Text = "Ready to snipe!"
-ProgressLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-ProgressLabel.TextSize = 14
-ProgressLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-local ProgressBarBG = Instance.new("Frame")
-ProgressBarBG.Parent = ProgressSection
-ProgressBarBG.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-ProgressBarBG.BorderSizePixel = 0
-ProgressBarBG.Position = UDim2.new(0, 10, 0, 30)
-ProgressBarBG.Size = UDim2.new(1, -20, 0, 20)
-
-local ProgressBarCorner = Instance.new("UICorner")
-ProgressBarCorner.CornerRadius = UDim.new(0, 10)
-ProgressBarCorner.Parent = ProgressBarBG
-
-local ProgressBar = Instance.new("Frame")
-ProgressBar.Name = "ProgressBar"
-ProgressBar.Parent = ProgressBarBG
-ProgressBar.BackgroundColor3 = Color3.fromRGB(255, 170, 0)
-ProgressBar.BorderSizePixel = 0
-ProgressBar.Size = UDim2.new(0, 0, 1, 0)
-ProgressBar.Position = UDim2.new(0, 0, 0, 0)
-
-local ProgressFillCorner = Instance.new("UICorner")
-ProgressFillCorner.CornerRadius = UDim.new(0, 10)
-ProgressFillCorner.Parent = ProgressBar
 
 -- Start Button
 local StartButton = Instance.new("TextButton")
@@ -417,6 +116,168 @@ local StartCorner = Instance.new("UICorner")
 StartCorner.CornerRadius = UDim.new(0, 12)
 StartCorner.Parent = StartButton
 
+-- GUI Upgrade: Clear and Recreate Content
+local bgGradient = Instance.new("UIGradient")
+bgGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(50,50,65)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(60,60,75))
+}
+bgGradient.Rotation = 45
+bgGradient.Parent = MainFrame
+
+-- Refined Content Frame
+local ContentScroll = Instance.new("ScrollingFrame")
+ContentScroll.Name = "ContentScroll"
+ContentScroll.BackgroundTransparency = 1
+ContentScroll.BorderSizePixel = 0
+ContentScroll.Position = UDim2.new(0,0,0,50)
+ContentScroll.Size = UDim2.new(1,0,1,-100)
+ContentScroll.CanvasSize = UDim2.new(0,0,0,420)  -- Adjusted for content
+ContentScroll.ScrollBarThickness = 8
+ContentScroll.ScrollBarImageColor3 = Color3.fromRGB(255,170,0)
+ContentScroll.Parent = MainFrame
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0,12)
+UIListLayout.Parent = ContentScroll
+
+-- Function to create a modern section
+local function createSection(title, height)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1,-20,0,height)
+    frame.BackgroundColor3 = Color3.fromRGB(50,50,65)  -- Gray sections
+    frame.BorderSizePixel = 0
+    frame.LayoutOrder = #ContentScroll:GetChildren()
+    frame.Parent = ContentScroll
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,12)
+    corner.Parent = frame
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1,-20,0,25)
+    label.Position = UDim2.new(0,10,0,5)
+    label.BackgroundTransparency = 1
+    label.Text = "📌 "..title
+    label.TextColor3 = Color3.fromRGB(255,170,0)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+
+    return frame
+end
+
+-- Recreate sections
+local InputSection = createSection("Target Input",130)
+local SettingsSection = createSection("Settings",90)
+local TargetSection = createSection("Target Info",130)
+local ProgressSection = createSection("Progress",70)
+
+-- Input Section
+local function createTextBox(parent, placeholder, position)
+    local box = Instance.new("TextBox")
+    box.Size = UDim2.new(1,-20,0,35)
+    box.Position = position or UDim2.new(0,10,0,35)
+    box.BackgroundColor3 = Color3.fromRGB(65,65,75)
+    box.BorderSizePixel = 0
+    box.PlaceholderText = placeholder
+    box.Text = ""
+    box.TextColor3 = Color3.fromRGB(255,255,255)
+    box.Font = Enum.Font.Gotham
+    box.TextSize = 16
+    box.ClearTextOnFocus = false
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0,6)
+    corner.Parent = box
+    box.Parent = parent
+    return box
+end
+
+-- Recreate input boxes
+local UsernameBox = createTextBox(InputSection,"Enter Username / UserID")
+local PlaceIdBox = createTextBox(InputSection,"PlaceID or leave empty for current game", UDim2.new(0,10,0,75))
+
+-- Settings Section boxes (side by side, fixed alignment)
+local ThreadsBox = createTextBox(SettingsSection,"Threads", UDim2.new(0,10,0,35))
+ThreadsBox.Size = UDim2.new(0.45,-10,0,35)
+local MaxServersBox = createTextBox(SettingsSection,"Max Servers", UDim2.new(0.55,0,0,35))
+MaxServersBox.Size = UDim2.new(0.45,-10,0,35)
+
+-- Target Section Labels
+local UsernameDisplay = Instance.new("TextLabel")
+UsernameDisplay.BackgroundTransparency = 1
+UsernameDisplay.Position = UDim2.new(0,10,0,35)
+UsernameDisplay.Size = UDim2.new(1,-120,0,25)
+UsernameDisplay.Font = Enum.Font.Gotham
+UsernameDisplay.TextSize = 14
+UsernameDisplay.TextXAlignment = Enum.TextXAlignment.Left
+UsernameDisplay.TextColor3 = Color3.fromRGB(255,255,255)
+UsernameDisplay.Text = "Username: Not loaded"
+UsernameDisplay.Parent = TargetSection
+
+local UserIdDisplay = Instance.new("TextLabel")
+UserIdDisplay.BackgroundTransparency = 1
+UserIdDisplay.Position = UDim2.new(0,10,0,60)
+UserIdDisplay.Size = UDim2.new(1,-120,0,25)
+UserIdDisplay.Font = Enum.Font.Gotham
+UserIdDisplay.TextSize = 14
+UserIdDisplay.TextXAlignment = Enum.TextXAlignment.Left
+UserIdDisplay.TextColor3 = Color3.fromRGB(255,255,255)
+UserIdDisplay.Text = "UserID: Not loaded"
+UserIdDisplay.Parent = TargetSection
+
+local AvatarImage = Instance.new("ImageLabel")
+AvatarImage.Size = UDim2.new(0,90,0,90)
+AvatarImage.Position = UDim2.new(1,-110,0,35)
+AvatarImage.BackgroundColor3 = Color3.fromRGB(65,65,75)
+AvatarImage.BorderSizePixel = 0
+AvatarImage.ScaleType = Enum.ScaleType.Fit
+AvatarImage.ImageTransparency = 1
+local avatarCorner = Instance.new("UICorner")
+avatarCorner.CornerRadius = UDim.new(1,0)
+avatarCorner.Parent = AvatarImage
+AvatarImage.Parent = TargetSection
+
+-- Progress Section Bar
+local ProgressBarBG = Instance.new("Frame")
+ProgressBarBG.Size = UDim2.new(1,-20,0,20)
+ProgressBarBG.Position = UDim2.new(0,10,0,30)
+ProgressBarBG.BackgroundColor3 = Color3.fromRGB(65,65,75)
+ProgressBarBG.BorderSizePixel = 0
+ProgressBarBG.Parent = ProgressSection
+local bgCorner = Instance.new("UICorner")
+bgCorner.CornerRadius = UDim.new(0,10)
+bgCorner.Parent = ProgressBarBG
+
+local ProgressBar = Instance.new("Frame")
+ProgressBar.Size = UDim2.new(0,0,1,0)
+ProgressBar.BackgroundColor3 = Color3.fromRGB(255,170,0)
+ProgressBar.BorderSizePixel = 0
+ProgressBar.Parent = ProgressBarBG
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(0,10)
+fillCorner.Parent = ProgressBar
+
+local ProgressLabel = Instance.new("TextLabel")
+ProgressLabel.Size = UDim2.new(1,-20,0,20)
+ProgressLabel.Position = UDim2.new(0,10,0,5)
+ProgressLabel.BackgroundTransparency = 1
+ProgressLabel.Font = Enum.Font.Gotham
+ProgressLabel.TextSize = 14
+ProgressLabel.TextColor3 = Color3.fromRGB(200,200,200)
+ProgressLabel.TextXAlignment = Enum.TextXAlignment.Left
+ProgressLabel.Text = "Ready to snipe!"
+ProgressLabel.Parent = ProgressSection
+
+-- Smooth fade-in animation for sections
+for _, frame in ipairs({InputSection,SettingsSection,TargetSection,ProgressSection}) do
+    frame.Position = UDim2.new(frame.Position.X.Scale,frame.Position.X.Offset,frame.Position.Y.Scale,frame.Position.Y.Offset + 50)
+    frame.BackgroundTransparency = 1
+    TweenService:Create(frame,TweenInfo.new(0.5,Enum.EasingStyle.Quart),{Position=UDim2.new(frame.Position.X.Scale,frame.Position.X.Offset,frame.Position.Y.Scale,frame.Position.Y.Offset - 50),BackgroundTransparency=0}):Play()
+end
+
 -- Hover effects
 local function addHover(button, hoverColor, normalColor)
     button.MouseEnter:Connect(function()
@@ -433,6 +294,9 @@ addHover(MinimizeButton, Color3.fromRGB(255, 193, 7), Color3.fromRGB(255, 255, 2
 
 -- Auto-fill current PlaceID
 PlaceIdBox.Text = tostring(game.PlaceId)
+
+-- Set shared
+shared.STREAM_SNIPER = Screenguini
 
 -- Variables
 local searching = false
@@ -642,11 +506,8 @@ end
 
 StartButton.MouseButton1Click:Connect(startSearch)
 
--- Set shared
-shared.STREAM_SNIPER = Screenguini
-
 -- Initial animation
 MainFrame.Size = UDim2.new(0, 0, 0, 0)
 TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 450, 0, 350)}):Play()
 
-print("Advanced Stream Sniper v2.0 loaded! UI layout fixed - no more overlapping text. 🚀")
+print("GUI upgraded: Black shadows removed, full gray theme applied, alignments fixed. Clean and aligned! 🚀")

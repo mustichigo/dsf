@@ -87,7 +87,7 @@ CloseButton.MouseButton1Click:Connect(function()
     Screenguini:Destroy()
 end)
 
--- Minimize Button (optional enhancement)
+-- Minimize Button
 local MinimizeButton = Instance.new("TextButton")
 MinimizeButton.Name = "MinimizeButton"
 MinimizeButton.Parent = TitleBar
@@ -105,7 +105,6 @@ MinimizeButton.MouseButton1Click:Connect(function()
     minimized = not minimized
     local targetSize = minimized and UDim2.new(0, 450, 0, 50) or UDim2.new(0, 450, 0, 350)
     TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = targetSize}):Play()
-    -- Hide/show content
     for _, child in ipairs(MainFrame:GetChildren()) do
         if child ~= TitleBar and child ~= Shadow and child ~= UICorner then
             child.Visible = not minimized
@@ -113,7 +112,7 @@ MinimizeButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Content Scrolling Frame for better layout
+-- Content Scrolling Frame
 local ContentScroll = Instance.new("ScrollingFrame")
 ContentScroll.Name = "ContentScroll"
 ContentScroll.Parent = MainFrame
@@ -144,7 +143,6 @@ local InputCorner = Instance.new("UICorner")
 InputCorner.CornerRadius = UDim.new(0, 8)
 InputCorner.Parent = InputSection
 
--- Username Input
 local UsernameLabel = Instance.new("TextLabel")
 UsernameLabel.Parent = InputSection
 UsernameLabel.BackgroundTransparency = 1
@@ -175,7 +173,6 @@ local UsernameCorner = Instance.new("UICorner")
 UsernameCorner.CornerRadius = UDim.new(0, 6)
 UsernameCorner.Parent = UsernameBox
 
--- PlaceID Input
 local PlaceIdLabel = Instance.new("TextLabel")
 PlaceIdLabel.Parent = InputSection
 PlaceIdLabel.BackgroundTransparency = 1
@@ -247,7 +244,6 @@ local ThreadsCorner = Instance.new("UICorner")
 ThreadsCorner.CornerRadius = UDim.new(0, 4)
 ThreadsCorner.Parent = ThreadsBox
 
--- Max Servers Label
 local MaxServersLabel = Instance.new("TextLabel")
 MaxServersLabel.Parent = SettingsSection
 MaxServersLabel.BackgroundTransparency = 1
@@ -334,6 +330,7 @@ AvatarImage.Position = UDim2.new(1, -110, 0, 35)
 AvatarImage.Size = UDim2.new(0, 90, 0, 90)
 AvatarImage.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
 AvatarImage.ScaleType = Enum.ScaleType.Fit
+AvatarImage.ImageTransparency = 1
 
 local AvatarCorner = Instance.new("UICorner")
 AvatarCorner.CornerRadius = UDim.new(1, 0)
@@ -404,7 +401,7 @@ local StartCorner = Instance.new("UICorner")
 StartCorner.CornerRadius = UDim.new(0, 12)
 StartCorner.Parent = StartButton
 
--- Hover effects for buttons
+-- Hover effects
 local function addHover(button, hoverColor, normalColor)
     button.MouseEnter:Connect(function()
         TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = hoverColor}):Play()
@@ -415,11 +412,11 @@ local function addHover(button, hoverColor, normalColor)
 end
 
 addHover(StartButton, Color3.fromRGB(255, 190, 50), Color3.fromRGB(255, 170, 0))
-addHover(CloseButton, Color3.fromRGB(255, 100, 100), Color3.fromRGB(255, 255, 255))
-addHover(MinimizeButton, Color3.fromRGB(255, 200, 100), Color3.fromRGB(255, 255, 255))
+addHover(CloseButton, Color3.fromRGB(220, 53, 69), Color3.fromRGB(255, 255, 255))
+addHover(MinimizeButton, Color3.fromRGB(255, 193, 7), Color3.fromRGB(255, 255, 255))
 
 -- Auto-fill current PlaceID
-PlaceIdBox.Text = game.PlaceId
+PlaceIdBox.Text = tostring(game.PlaceId)
 
 -- Variables
 local searching = false
@@ -430,9 +427,7 @@ local searched = 0
 local playersFound = 0
 
 local function HttpGet(url)
-    local success, result = pcall(function()
-        return game:HttpGet(url)
-    end)
+    local success, result = pcall(game.HttpGet, game, url)
     if success then
         local decodeSuccess, decoded = pcall(HttpService.JSONDecode, HttpService, result)
         return decodeSuccess, decoded
@@ -443,33 +438,30 @@ end
 local function updateProgress(text, progress)
     ProgressLabel.Text = text
     if progress then
-        local tween = TweenService:Create(ProgressBar, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Size = UDim2.new(progress / maxServers, 0, 1, 0)})
-        tween:Play()
+        TweenService:Create(ProgressBar, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Size = UDim2.new(progress / maxServers, 0, 1, 0)}):Play()
     end
 end
 
 local function fetchThumbs(tokens)
     if #tokens == 0 then return true, {} end
+    local bodyTable = {}
+    for i, token in ipairs(tokens) do
+        table.insert(bodyTable, {
+            requestId = "0:" .. token .. ":AvatarHeadshot:150x150:png:regular",
+            type = "AvatarHeadShot",
+            targetId = 0,
+            token = token,
+            format = "png",
+            size = "150x150"
+        })
+    end
     local payload = {
         Url = "https://thumbnails.roblox.com/v1/batch",
         Headers = {["Content-Type"] = "application/json"},
         Method = "POST",
-        Body = HttpService:JSONEncode({
-            for i, token in ipairs(tokens) do
-                {
-                    requestId = "0:" .. token .. ":AvatarHeadshot:150x150:png:regular",
-                    type = "AvatarHeadShot",
-                    targetId = 0,
-                    token = token,
-                    format = "png",
-                    size = "150x150"
-                }
-            end
-        })
+        Body = HttpService:JSONEncode(bodyTable)
     }
-    local success, response = pcall(function()
-        return httprequest(payload)
-    end)
+    local success, response = pcall(httprequest, payload)
     if success then
         local decodeSuccess, data = pcall(HttpService.JSONDecode, HttpService, response.Body)
         return decodeSuccess, data and data.data or {}
@@ -479,24 +471,20 @@ end
 
 local function teleportToServer(placeId, jobId)
     updateProgress("Teleporting to server...", 1)
-    local connection
-    connection = Players.PlayerAdded:Connect(function()
-        connection:Disconnect()
-    end)
     TeleportService:TeleportToPlaceInstance(placeId, jobId, Players.LocalPlayer)
     local attempts = 0
     local maxAttempts = 3
     spawn(function()
-        while attempts < maxAttempts do
+        repeat
             wait(2)
-            if Players.LocalPlayer.Parent == nil then
-                attempts = attempts + 1
+            attempts = attempts + 1
+            if not Players.LocalPlayer.Parent then
                 updateProgress("Teleport failed, retrying... (" .. attempts .. "/" .. maxAttempts .. ")", 1)
                 TeleportService:TeleportToPlaceInstance(placeId, jobId, Players.LocalPlayer)
             else
                 break
             end
-        end
+        until attempts >= maxAttempts
         if attempts >= maxAttempts then
             updateProgress("Teleport failed after " .. maxAttempts .. " attempts.", 1)
         end
@@ -535,24 +523,23 @@ local function startSearch()
         return
     end
 
-    -- Validate inputs
     local targetInput = UsernameBox.Text:match("^%s*(.-)%s*$")
     if targetInput == "" then
         updateProgress("Please enter a username or UserID!", 0)
         return
     end
 
-    threads = tonumber(ThreadsBox.Text) or 30
-    maxServers = tonumber(MaxServersBox.Text) or 1000
+    threads = math.max(1, tonumber(ThreadsBox.Text) or 30)
+    maxServers = math.max(1, tonumber(MaxServersBox.Text) or 1000)
 
     searching = true
     confirm = false
     StartButton.Text = "⏹️ Stop Search"
     searched = 0
     playersFound = 0
+    ProgressBar.Size = UDim2.new(0, 0, 1, 0)
 
     spawn(function()
-        -- Get User Info
         updateProgress("🔍 Resolving user info...")
         local userId, username
         local success, err = pcall(function()
@@ -566,14 +553,12 @@ local function startSearch()
             return
         end
 
-        -- Update displays
         UsernameDisplay.Text = "Username: " .. username
         UserIdDisplay.Text = "UserID: " .. userId
 
-        -- Get thumbnail
         updateProgress("🖼️ Fetching avatar...")
         local thumbSuccess, thumbData = HttpGet("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=" .. userId .. "&format=Png&size=150x150&isCircular=false")
-        local targetThumb = thumbSuccess and thumbData.data[1] and thumbData.data[1].imageUrl or ""
+        local targetThumb = thumbSuccess and thumbData and thumbData.data and thumbData.data[1] and thumbData.data[1].imageUrl or ""
 
         if targetThumb ~= "" then
             AvatarImage.Image = targetThumb
@@ -583,11 +568,11 @@ local function startSearch()
         local placeId = tonumber(PlaceIdBox.Text) or game.PlaceId
         updateProgress("🎯 Searching for " .. username .. " in Place " .. placeId .. "...")
 
-        -- Search loop
         local cursor = nil
         local totalSearched = 0
 
-        while searching and totalSearched < maxServers do
+        repeat
+            if not searching then break end
             local success, result = getServers(placeId, cursor)
             if not success then
                 updateProgress("❌ Failed to fetch servers. Retrying...", totalSearched / maxServers)
@@ -598,44 +583,36 @@ local function startSearch()
             local servers = result.data or {}
             cursor = result.nextPageCursor
 
-            -- Process servers in batches
-            for i = 1, #servers, threads do
-                if not searching then break end
-                local batch = {}
-                for j = 1, math.min(threads, #servers - i + 1) do
-                    table.insert(batch, servers[i + j - 1])
-                end
-
+            for i = 1, #servers do
+                if not searching or totalSearched >= maxServers then break end
+                local server = servers[i]
                 spawn(function()
-                    for _, server in ipairs(batch) do
-                        if not searching then return end
-                        local thumbSuccess, thumbs = fetchThumbs(server.playerTokens or {})
-                        if thumbSuccess then
-                            playersFound = playersFound + #thumbs
-                            for _, thumb in ipairs(thumbs) do
-                                if thumb.state == "Completed" and thumb.imageUrl == targetThumb then
-                                    searching = false
-                                    updateProgress("✅ Found " .. username .. "! Teleporting...", 1)
-                                    StartButton.Text = "🚀 Start Sniping"
-                                    teleportToServer(placeId, server.id)
-                                    return
-                                end
+                    local thumbSuccess, thumbs = fetchThumbs(server.playerTokens or {})
+                    if thumbSuccess then
+                        playersFound = playersFound + #thumbs
+                        for _, thumb in ipairs(thumbs) do
+                            if thumb.state == "Completed" and thumb.imageUrl == targetThumb then
+                                searching = false
+                                updateProgress("✅ Found " .. username .. "! Teleporting...", 1)
+                                StartButton.Text = "🚀 Start Sniping"
+                                teleportToServer(placeId, server.id)
+                                return
                             end
                         end
-                        totalSearched = totalSearched + 1
-                        searched = totalSearched
-                        updateProgress("Scanned " .. totalSearched .. "/" .. maxServers .. " servers (" .. playersFound .. " players checked)", totalSearched / maxServers)
                     end
+                    totalSearched = totalSearched + 1
+                    updateProgress("Scanned " .. totalSearched .. "/" .. maxServers .. " servers (" .. playersFound .. " players checked)", totalSearched / maxServers)
                 end)
-                wait(0.1)  -- Small delay to avoid rate limits
+                if i % threads == 0 then
+                    wait(0.1)
+                end
             end
 
             if not cursor then
                 break
             end
-
-            wait(0.5)  -- Page delay
-        end
+            wait(0.5)
+        until totalSearched >= maxServers or not searching
 
         if searching then
             updateProgress("❌ " .. username .. " not found in public servers (try VIP? Or increase max servers).", 1)
@@ -656,4 +633,4 @@ shared.STREAM_SNIPER = Screenguini
 MainFrame.Size = UDim2.new(0, 0, 0, 0)
 TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 450, 0, 350)}):Play()
 
-print("Advanced Stream Sniper v2.0 loaded! Enhanced with modern UI, progress tracking, settings, and better error handling.")
+print("Advanced Stream Sniper v2.0 loaded! Fixed syntax, now works like a charm. 🚀")

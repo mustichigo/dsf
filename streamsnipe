@@ -203,7 +203,7 @@ local PlaceIdCorner = Instance.new("UICorner")
 PlaceIdCorner.CornerRadius = UDim.new(0, 6)
 PlaceIdCorner.Parent = PlaceIdBox
 
--- Settings Section
+-- Settings Section (Fixed layout - yan yana for threads and max servers)
 local SettingsSection = Instance.new("Frame")
 SettingsSection.Name = "SettingsSection"
 SettingsSection.Parent = ContentScroll
@@ -216,24 +216,32 @@ local SettingsCorner = Instance.new("UICorner")
 SettingsCorner.CornerRadius = UDim.new(0, 8)
 SettingsCorner.Parent = SettingsSection
 
+-- Threads part (left side)
+local ThreadsFrame = Instance.new("Frame")
+ThreadsFrame.Parent = SettingsSection
+ThreadsFrame.BackgroundTransparency = 1
+ThreadsFrame.Size = UDim2.new(0.5, -5, 1, 0)
+ThreadsFrame.Position = UDim2.new(0, 10, 0, 5)
+
 local ThreadsLabel = Instance.new("TextLabel")
-ThreadsLabel.Parent = SettingsSection
+ThreadsLabel.Parent = ThreadsFrame
 ThreadsLabel.BackgroundTransparency = 1
-ThreadsLabel.Size = UDim2.new(1, 0, 0, 25)
-ThreadsLabel.Position = UDim2.new(0, 10, 0, 5)
+ThreadsLabel.Size = UDim2.new(1, 0, 0.5, 0)
+ThreadsLabel.Position = UDim2.new(0, 0, 0, 0)
 ThreadsLabel.Font = Enum.Font.Gotham
 ThreadsLabel.Text = "⚙️ Threads (Parallel Searches):"
 ThreadsLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 ThreadsLabel.TextSize = 14
 ThreadsLabel.TextXAlignment = Enum.TextXAlignment.Left
+ThreadsLabel.TextWrapped = true
 
 local ThreadsBox = Instance.new("TextBox")
 ThreadsBox.Name = "ThreadsBox"
-ThreadsBox.Parent = SettingsSection
+ThreadsBox.Parent = ThreadsFrame
 ThreadsBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
 ThreadsBox.BorderSizePixel = 0
-ThreadsBox.Position = UDim2.new(0, 10, 0, 35)
-ThreadsBox.Size = UDim2.new(0.3, -15, 0, 30)
+ThreadsBox.Position = UDim2.new(0, 0, 0.5, 0)
+ThreadsBox.Size = UDim2.new(1, 0, 0.5, 0)
 ThreadsBox.Font = Enum.Font.Gotham
 ThreadsBox.Text = "30"
 ThreadsBox.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -244,24 +252,32 @@ local ThreadsCorner = Instance.new("UICorner")
 ThreadsCorner.CornerRadius = UDim.new(0, 4)
 ThreadsCorner.Parent = ThreadsBox
 
+-- Max Servers part (right side)
+local MaxServersFrame = Instance.new("Frame")
+MaxServersFrame.Parent = SettingsSection
+MaxServersFrame.BackgroundTransparency = 1
+MaxServersFrame.Size = UDim2.new(0.5, -5, 1, 0)
+MaxServersFrame.Position = UDim2.new(0.5, 5, 0, 5)
+
 local MaxServersLabel = Instance.new("TextLabel")
-MaxServersLabel.Parent = SettingsSection
+MaxServersLabel.Parent = MaxServersFrame
 MaxServersLabel.BackgroundTransparency = 1
-MaxServersLabel.Size = UDim2.new(1, 0, 0, 25)
-MaxServersLabel.Position = UDim2.new(0, 150, 0, 5)
+MaxServersLabel.Size = UDim2.new(1, 0, 0.5, 0)
+MaxServersLabel.Position = UDim2.new(0, 0, 0, 0)
 MaxServersLabel.Font = Enum.Font.Gotham
 MaxServersLabel.Text = "Max Servers to Scan:"
 MaxServersLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 MaxServersLabel.TextSize = 14
 MaxServersLabel.TextXAlignment = Enum.TextXAlignment.Left
+MaxServersLabel.TextWrapped = true
 
 local MaxServersBox = Instance.new("TextBox")
 MaxServersBox.Name = "MaxServersBox"
-MaxServersBox.Parent = SettingsSection
+MaxServersBox.Parent = MaxServersFrame
 MaxServersBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
 MaxServersBox.BorderSizePixel = 0
-MaxServersBox.Position = UDim2.new(0, 150, 0, 35)
-MaxServersBox.Size = UDim2.new(0.3, -15, 0, 30)
+MaxServersBox.Position = UDim2.new(0, 0, 0.5, 0)
+MaxServersBox.Size = UDim2.new(1, 0, 0.5, 0)
 MaxServersBox.Font = Enum.Font.Gotham
 MaxServersBox.Text = "1000"
 MaxServersBox.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -633,4 +649,4 @@ shared.STREAM_SNIPER = Screenguini
 MainFrame.Size = UDim2.new(0, 0, 0, 0)
 TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 450, 0, 350)}):Play()
 
-print("Advanced Stream Sniper v2.0 loaded! Fixed syntax, now works like a charm. 🚀")
+print("Advanced Stream Sniper v2.0 loaded! UI layout fixed - no more overlapping text. 🚀")

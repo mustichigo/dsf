@@ -1,0 +1,659 @@
+local httprequest = request or http_request or (syn and syn.request) or (http and http.request) or (fluxus and fluxus.request)
+local HttpService = cloneref and cloneref(game:GetService("HttpService")) or game:GetService("HttpService")
+local Players = cloneref and cloneref(game:GetService("Players")) or game:GetService("Players")
+local TeleportService = cloneref and cloneref(game:GetService("TeleportService")) or game:GetService("TeleportService")
+local TweenService = cloneref and cloneref(game:GetService("TweenService")) or game:GetService("TweenService")
+local CoreGui = cloneref and cloneref(game:GetService("CoreGui")) or game:GetService("CoreGui")
+
+-- Destroy existing if present
+if shared.STREAM_SNIPER then
+    shared.STREAM_SNIPER:Destroy()
+end
+
+-- Main GUI Creation
+local Screenguini = Instance.new("ScreenGui")
+Screenguini.Name = "StreamSniperV2"
+Screenguini.Parent = CoreGui
+Screenguini.ResetOnSpawn = false
+
+-- Main Frame with rounded corners simulation and shadow
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = Screenguini
+MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+MainFrame.BorderSizePixel = 0
+MainFrame.Size = UDim2.new(0, 450, 0, 350)
+MainFrame.Position = UDim2.new(0.5, -225, 0.5, -175)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- Corner rounding (using UICorner)
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+-- Shadow effect (simple frame behind)
+local Shadow = Instance.new("Frame")
+Shadow.Name = "Shadow"
+Shadow.Parent = MainFrame
+Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.BackgroundTransparency = 0.7
+Shadow.BorderSizePixel = 0
+Shadow.Size = UDim2.new(1, 10, 1, 10)
+Shadow.Position = UDim2.new(0, -5, 0, -5)
+Shadow.ZIndex = MainFrame.ZIndex - 1
+local ShadowCorner = Instance.new("UICorner")
+ShadowCorner.CornerRadius = UDim.new(0, 12)
+ShadowCorner.Parent = Shadow
+
+-- Title Bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.Parent = MainFrame
+TitleBar.BackgroundColor3 = Color3.fromRGB(255, 170, 0)
+TitleBar.BorderSizePixel = 0
+TitleBar.Size = UDim2.new(1, 0, 0, 50)
+TitleBar.ZIndex = 10
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = TitleBar
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Parent = TitleBar
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Size = UDim2.new(1, -60, 1, 0)
+TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "🚀 Advanced Stream Sniper v2.0"
+TitleLabel.TextColor3 = Color3.fromRGB(35, 35, 45)
+TitleLabel.TextSize = 18
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Close Button
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = TitleBar
+CloseButton.BackgroundTransparency = 1
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(1, -40, 0, 10)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "✕"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 20
+CloseButton.ZIndex = 11
+
+CloseButton.MouseButton1Click:Connect(function()
+    Screenguini:Destroy()
+end)
+
+-- Minimize Button (optional enhancement)
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Name = "MinimizeButton"
+MinimizeButton.Parent = TitleBar
+MinimizeButton.BackgroundTransparency = 1
+MinimizeButton.Size = UDim2.new(0, 30, 0, 30)
+MinimizeButton.Position = UDim2.new(1, -80, 0, 10)
+MinimizeButton.Font = Enum.Font.GothamBold
+MinimizeButton.Text = "−"
+MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.TextSize = 20
+MinimizeButton.ZIndex = 11
+
+local minimized = false
+MinimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    local targetSize = minimized and UDim2.new(0, 450, 0, 50) or UDim2.new(0, 450, 0, 350)
+    TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = targetSize}):Play()
+    -- Hide/show content
+    for _, child in ipairs(MainFrame:GetChildren()) do
+        if child ~= TitleBar and child ~= Shadow and child ~= UICorner then
+            child.Visible = not minimized
+        end
+    end
+end)
+
+-- Content Scrolling Frame for better layout
+local ContentScroll = Instance.new("ScrollingFrame")
+ContentScroll.Name = "ContentScroll"
+ContentScroll.Parent = MainFrame
+ContentScroll.BackgroundTransparency = 1
+ContentScroll.BorderSizePixel = 0
+ContentScroll.Position = UDim2.new(0, 0, 0, 50)
+ContentScroll.Size = UDim2.new(1, 0, 1, -100)
+ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 280)
+ContentScroll.ScrollBarThickness = 6
+ContentScroll.ScrollBarImageColor3 = Color3.fromRGB(255, 170, 0)
+ContentScroll.ScrollingDirection = Enum.ScrollingDirection.Y
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = ContentScroll
+UIListLayout.Padding = UDim.new(0, 10)
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- Input Section
+local InputSection = Instance.new("Frame")
+InputSection.Name = "InputSection"
+InputSection.Parent = ContentScroll
+InputSection.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+InputSection.BorderSizePixel = 0
+InputSection.Size = UDim2.new(1, -20, 0, 120)
+InputSection.LayoutOrder = 1
+
+local InputCorner = Instance.new("UICorner")
+InputCorner.CornerRadius = UDim.new(0, 8)
+InputCorner.Parent = InputSection
+
+-- Username Input
+local UsernameLabel = Instance.new("TextLabel")
+UsernameLabel.Parent = InputSection
+UsernameLabel.BackgroundTransparency = 1
+UsernameLabel.Size = UDim2.new(1, 0, 0, 25)
+UsernameLabel.Position = UDim2.new(0, 10, 0, 5)
+UsernameLabel.Font = Enum.Font.Gotham
+UsernameLabel.Text = "👤 Target Username / UserID:"
+UsernameLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+UsernameLabel.TextSize = 14
+UsernameLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local UsernameBox = Instance.new("TextBox")
+UsernameBox.Name = "UsernameBox"
+UsernameBox.Parent = InputSection
+UsernameBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+UsernameBox.BorderSizePixel = 0
+UsernameBox.Position = UDim2.new(0, 10, 0, 35)
+UsernameBox.Size = UDim2.new(1, -20, 0, 35)
+UsernameBox.Font = Enum.Font.Gotham
+UsernameBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+UsernameBox.PlaceholderText = "Enter Username or UserID (e.g., 'PlayerName' or 123456)"
+UsernameBox.Text = ""
+UsernameBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+UsernameBox.TextSize = 16
+UsernameBox.ClearTextOnFocus = false
+
+local UsernameCorner = Instance.new("UICorner")
+UsernameCorner.CornerRadius = UDim.new(0, 6)
+UsernameCorner.Parent = UsernameBox
+
+-- PlaceID Input
+local PlaceIdLabel = Instance.new("TextLabel")
+PlaceIdLabel.Parent = InputSection
+PlaceIdLabel.BackgroundTransparency = 1
+PlaceIdLabel.Size = UDim2.new(1, 0, 0, 25)
+PlaceIdLabel.Position = UDim2.new(0, 10, 0, 75)
+PlaceIdLabel.Font = Enum.Font.Gotham
+PlaceIdLabel.Text = "🎮 Place ID (Leave blank for current):"
+PlaceIdLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+PlaceIdLabel.TextSize = 14
+PlaceIdLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local PlaceIdBox = Instance.new("TextBox")
+PlaceIdBox.Name = "PlaceIdBox"
+PlaceIdBox.Parent = InputSection
+PlaceIdBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+PlaceIdBox.BorderSizePixel = 0
+PlaceIdBox.Position = UDim2.new(0, 10, 0, 105)
+PlaceIdBox.Size = UDim2.new(1, -20, 0, 35)
+PlaceIdBox.Font = Enum.Font.Gotham
+PlaceIdBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+PlaceIdBox.PlaceholderText = "Enter PlaceID or leave empty for current game"
+PlaceIdBox.Text = ""
+PlaceIdBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+PlaceIdBox.TextSize = 16
+PlaceIdBox.ClearTextOnFocus = false
+
+local PlaceIdCorner = Instance.new("UICorner")
+PlaceIdCorner.CornerRadius = UDim.new(0, 6)
+PlaceIdCorner.Parent = PlaceIdBox
+
+-- Settings Section
+local SettingsSection = Instance.new("Frame")
+SettingsSection.Name = "SettingsSection"
+SettingsSection.Parent = ContentScroll
+SettingsSection.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+SettingsSection.BorderSizePixel = 0
+SettingsSection.Size = UDim2.new(1, -20, 0, 80)
+SettingsSection.LayoutOrder = 2
+
+local SettingsCorner = Instance.new("UICorner")
+SettingsCorner.CornerRadius = UDim.new(0, 8)
+SettingsCorner.Parent = SettingsSection
+
+local ThreadsLabel = Instance.new("TextLabel")
+ThreadsLabel.Parent = SettingsSection
+ThreadsLabel.BackgroundTransparency = 1
+ThreadsLabel.Size = UDim2.new(1, 0, 0, 25)
+ThreadsLabel.Position = UDim2.new(0, 10, 0, 5)
+ThreadsLabel.Font = Enum.Font.Gotham
+ThreadsLabel.Text = "⚙️ Threads (Parallel Searches):"
+ThreadsLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+ThreadsLabel.TextSize = 14
+ThreadsLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local ThreadsBox = Instance.new("TextBox")
+ThreadsBox.Name = "ThreadsBox"
+ThreadsBox.Parent = SettingsSection
+ThreadsBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+ThreadsBox.BorderSizePixel = 0
+ThreadsBox.Position = UDim2.new(0, 10, 0, 35)
+ThreadsBox.Size = UDim2.new(0.3, -15, 0, 30)
+ThreadsBox.Font = Enum.Font.Gotham
+ThreadsBox.Text = "30"
+ThreadsBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+ThreadsBox.TextSize = 16
+ThreadsBox.ClearTextOnFocus = false
+
+local ThreadsCorner = Instance.new("UICorner")
+ThreadsCorner.CornerRadius = UDim.new(0, 4)
+ThreadsCorner.Parent = ThreadsBox
+
+-- Max Servers Label
+local MaxServersLabel = Instance.new("TextLabel")
+MaxServersLabel.Parent = SettingsSection
+MaxServersLabel.BackgroundTransparency = 1
+MaxServersLabel.Size = UDim2.new(1, 0, 0, 25)
+MaxServersLabel.Position = UDim2.new(0, 150, 0, 5)
+MaxServersLabel.Font = Enum.Font.Gotham
+MaxServersLabel.Text = "Max Servers to Scan:"
+MaxServersLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+MaxServersLabel.TextSize = 14
+MaxServersLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local MaxServersBox = Instance.new("TextBox")
+MaxServersBox.Name = "MaxServersBox"
+MaxServersBox.Parent = SettingsSection
+MaxServersBox.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+MaxServersBox.BorderSizePixel = 0
+MaxServersBox.Position = UDim2.new(0, 150, 0, 35)
+MaxServersBox.Size = UDim2.new(0.3, -15, 0, 30)
+MaxServersBox.Font = Enum.Font.Gotham
+MaxServersBox.Text = "1000"
+MaxServersBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+MaxServersBox.TextSize = 16
+MaxServersBox.ClearTextOnFocus = false
+
+local MaxServersCorner = Instance.new("UICorner")
+MaxServersCorner.CornerRadius = UDim.new(0, 4)
+MaxServersCorner.Parent = MaxServersBox
+
+-- Target Info Display
+local TargetSection = Instance.new("Frame")
+TargetSection.Name = "TargetSection"
+TargetSection.Parent = ContentScroll
+TargetSection.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+TargetSection.BorderSizePixel = 0
+TargetSection.Size = UDim2.new(1, -20, 0, 120)
+TargetSection.LayoutOrder = 3
+
+local TargetCorner = Instance.new("UICorner")
+TargetCorner.CornerRadius = UDim.new(0, 8)
+TargetCorner.Parent = TargetSection
+
+local TargetTitle = Instance.new("TextLabel")
+TargetTitle.Parent = TargetSection
+TargetTitle.BackgroundTransparency = 1
+TargetTitle.Size = UDim2.new(1, 0, 0, 25)
+TargetTitle.Position = UDim2.new(0, 10, 0, 5)
+TargetTitle.Font = Enum.Font.GothamBold
+TargetTitle.Text = "📊 Target Info"
+TargetTitle.TextColor3 = Color3.fromRGB(255, 170, 0)
+TargetTitle.TextSize = 16
+TargetTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local UsernameDisplay = Instance.new("TextLabel")
+UsernameDisplay.Name = "UsernameDisplay"
+UsernameDisplay.Parent = TargetSection
+UsernameDisplay.BackgroundTransparency = 1
+UsernameDisplay.Size = UDim2.new(1, -100, 0, 25)
+UsernameDisplay.Position = UDim2.new(0, 10, 0, 35)
+UsernameDisplay.Font = Enum.Font.Gotham
+UsernameDisplay.Text = "Username: Not loaded"
+UsernameDisplay.TextColor3 = Color3.fromRGB(255, 255, 255)
+UsernameDisplay.TextSize = 14
+UsernameDisplay.TextXAlignment = Enum.TextXAlignment.Left
+
+local UserIdDisplay = Instance.new("TextLabel")
+UserIdDisplay.Name = "UserIdDisplay"
+UserIdDisplay.Parent = TargetSection
+UserIdDisplay.BackgroundTransparency = 1
+UserIdDisplay.Size = UDim2.new(1, -100, 0, 25)
+UserIdDisplay.Position = UDim2.new(0, 10, 0, 60)
+UserIdDisplay.Font = Enum.Font.Gotham
+UserIdDisplay.Text = "UserID: Not loaded"
+UserIdDisplay.TextColor3 = Color3.fromRGB(255, 255, 255)
+UserIdDisplay.TextSize = 14
+UserIdDisplay.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Avatar Image
+local AvatarImage = Instance.new("ImageLabel")
+AvatarImage.Name = "AvatarImage"
+AvatarImage.Parent = TargetSection
+AvatarImage.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+AvatarImage.BorderSizePixel = 0
+AvatarImage.Position = UDim2.new(1, -110, 0, 35)
+AvatarImage.Size = UDim2.new(0, 90, 0, 90)
+AvatarImage.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+AvatarImage.ScaleType = Enum.ScaleType.Fit
+
+local AvatarCorner = Instance.new("UICorner")
+AvatarCorner.CornerRadius = UDim.new(1, 0)
+AvatarCorner.Parent = AvatarImage
+
+-- Progress Section
+local ProgressSection = Instance.new("Frame")
+ProgressSection.Name = "ProgressSection"
+ProgressSection.Parent = ContentScroll
+ProgressSection.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+ProgressSection.BorderSizePixel = 0
+ProgressSection.Size = UDim2.new(1, -20, 0, 60)
+ProgressSection.LayoutOrder = 4
+
+local ProgressCorner = Instance.new("UICorner")
+ProgressCorner.CornerRadius = UDim.new(0, 8)
+ProgressCorner.Parent = ProgressSection
+
+local ProgressLabel = Instance.new("TextLabel")
+ProgressLabel.Parent = ProgressSection
+ProgressLabel.BackgroundTransparency = 1
+ProgressLabel.Size = UDim2.new(1, 0, 0, 20)
+ProgressLabel.Position = UDim2.new(0, 10, 0, 5)
+ProgressLabel.Font = Enum.Font.Gotham
+ProgressLabel.Text = "Ready to snipe!"
+ProgressLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+ProgressLabel.TextSize = 14
+ProgressLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local ProgressBarBG = Instance.new("Frame")
+ProgressBarBG.Parent = ProgressSection
+ProgressBarBG.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+ProgressBarBG.BorderSizePixel = 0
+ProgressBarBG.Position = UDim2.new(0, 10, 0, 30)
+ProgressBarBG.Size = UDim2.new(1, -20, 0, 20)
+
+local ProgressBarCorner = Instance.new("UICorner")
+ProgressBarCorner.CornerRadius = UDim.new(0, 10)
+ProgressBarCorner.Parent = ProgressBarBG
+
+local ProgressBar = Instance.new("Frame")
+ProgressBar.Name = "ProgressBar"
+ProgressBar.Parent = ProgressBarBG
+ProgressBar.BackgroundColor3 = Color3.fromRGB(255, 170, 0)
+ProgressBar.BorderSizePixel = 0
+ProgressBar.Size = UDim2.new(0, 0, 1, 0)
+ProgressBar.Position = UDim2.new(0, 0, 0, 0)
+
+local ProgressFillCorner = Instance.new("UICorner")
+ProgressFillCorner.CornerRadius = UDim.new(0, 10)
+ProgressFillCorner.Parent = ProgressBar
+
+-- Start Button
+local StartButton = Instance.new("TextButton")
+StartButton.Name = "StartButton"
+StartButton.Parent = MainFrame
+StartButton.BackgroundColor3 = Color3.fromRGB(255, 170, 0)
+StartButton.BorderSizePixel = 0
+StartButton.Position = UDim2.new(0, 0, 1, -50)
+StartButton.Size = UDim2.new(1, 0, 0, 50)
+StartButton.Font = Enum.Font.GothamBold
+StartButton.Text = "🚀 Start Sniping"
+StartButton.TextColor3 = Color3.fromRGB(35, 35, 45)
+StartButton.TextSize = 18
+StartButton.ZIndex = 10
+
+local StartCorner = Instance.new("UICorner")
+StartCorner.CornerRadius = UDim.new(0, 12)
+StartCorner.Parent = StartButton
+
+-- Hover effects for buttons
+local function addHover(button, hoverColor, normalColor)
+    button.MouseEnter:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = hoverColor}):Play()
+    end)
+    button.MouseLeave:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = normalColor}):Play()
+    end)
+end
+
+addHover(StartButton, Color3.fromRGB(255, 190, 50), Color3.fromRGB(255, 170, 0))
+addHover(CloseButton, Color3.fromRGB(255, 100, 100), Color3.fromRGB(255, 255, 255))
+addHover(MinimizeButton, Color3.fromRGB(255, 200, 100), Color3.fromRGB(255, 255, 255))
+
+-- Auto-fill current PlaceID
+PlaceIdBox.Text = game.PlaceId
+
+-- Variables
+local searching = false
+local confirm = false
+local threads = 30
+local maxServers = 1000
+local searched = 0
+local playersFound = 0
+
+local function HttpGet(url)
+    local success, result = pcall(function()
+        return game:HttpGet(url)
+    end)
+    if success then
+        local decodeSuccess, decoded = pcall(HttpService.JSONDecode, HttpService, result)
+        return decodeSuccess, decoded
+    end
+    return false, nil
+end
+
+local function updateProgress(text, progress)
+    ProgressLabel.Text = text
+    if progress then
+        local tween = TweenService:Create(ProgressBar, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Size = UDim2.new(progress / maxServers, 0, 1, 0)})
+        tween:Play()
+    end
+end
+
+local function fetchThumbs(tokens)
+    if #tokens == 0 then return true, {} end
+    local payload = {
+        Url = "https://thumbnails.roblox.com/v1/batch",
+        Headers = {["Content-Type"] = "application/json"},
+        Method = "POST",
+        Body = HttpService:JSONEncode({
+            for i, token in ipairs(tokens) do
+                {
+                    requestId = "0:" .. token .. ":AvatarHeadshot:150x150:png:regular",
+                    type = "AvatarHeadShot",
+                    targetId = 0,
+                    token = token,
+                    format = "png",
+                    size = "150x150"
+                }
+            end
+        })
+    }
+    local success, response = pcall(function()
+        return httprequest(payload)
+    end)
+    if success then
+        local decodeSuccess, data = pcall(HttpService.JSONDecode, HttpService, response.Body)
+        return decodeSuccess, data and data.data or {}
+    end
+    return false, {}
+end
+
+local function teleportToServer(placeId, jobId)
+    updateProgress("Teleporting to server...", 1)
+    local connection
+    connection = Players.PlayerAdded:Connect(function()
+        connection:Disconnect()
+    end)
+    TeleportService:TeleportToPlaceInstance(placeId, jobId, Players.LocalPlayer)
+    local attempts = 0
+    local maxAttempts = 3
+    spawn(function()
+        while attempts < maxAttempts do
+            wait(2)
+            if Players.LocalPlayer.Parent == nil then
+                attempts = attempts + 1
+                updateProgress("Teleport failed, retrying... (" .. attempts .. "/" .. maxAttempts .. ")", 1)
+                TeleportService:TeleportToPlaceInstance(placeId, jobId, Players.LocalPlayer)
+            else
+                break
+            end
+        end
+        if attempts >= maxAttempts then
+            updateProgress("Teleport failed after " .. maxAttempts .. " attempts.", 1)
+        end
+    end)
+end
+
+local function getServers(placeId, cursor)
+    local url = "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?limit=100"
+    if cursor then
+        url = url .. "&cursor=" .. cursor
+    end
+    return HttpGet(url)
+end
+
+-- Main Search Function
+local function startSearch()
+    if confirm then
+        confirm = false
+        searching = false
+        updateProgress("Search cancelled by user.", 0)
+        StartButton.Text = "🚀 Start Sniping"
+        return
+    end
+
+    if searching then
+        confirm = true
+        local originalText = StartButton.Text
+        StartButton.Text = "❌ Cancel Search (Click again to confirm)"
+        spawn(function()
+            wait(5)
+            if confirm then
+                confirm = false
+                StartButton.Text = originalText
+            end
+        end)
+        return
+    end
+
+    -- Validate inputs
+    local targetInput = UsernameBox.Text:match("^%s*(.-)%s*$")
+    if targetInput == "" then
+        updateProgress("Please enter a username or UserID!", 0)
+        return
+    end
+
+    threads = tonumber(ThreadsBox.Text) or 30
+    maxServers = tonumber(MaxServersBox.Text) or 1000
+
+    searching = true
+    confirm = false
+    StartButton.Text = "⏹️ Stop Search"
+    searched = 0
+    playersFound = 0
+
+    spawn(function()
+        -- Get User Info
+        updateProgress("🔍 Resolving user info...")
+        local userId, username
+        local success, err = pcall(function()
+            userId = tonumber(targetInput) or Players:GetUserIdFromNameAsync(targetInput)
+            username = Players:GetNameFromUserIdAsync(userId)
+        end)
+        if not success then
+            updateProgress("❌ Invalid username/UserID: " .. tostring(err), 0)
+            searching = false
+            StartButton.Text = "🚀 Start Sniping"
+            return
+        end
+
+        -- Update displays
+        UsernameDisplay.Text = "Username: " .. username
+        UserIdDisplay.Text = "UserID: " .. userId
+
+        -- Get thumbnail
+        updateProgress("🖼️ Fetching avatar...")
+        local thumbSuccess, thumbData = HttpGet("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=" .. userId .. "&format=Png&size=150x150&isCircular=false")
+        local targetThumb = thumbSuccess and thumbData.data[1] and thumbData.data[1].imageUrl or ""
+
+        if targetThumb ~= "" then
+            AvatarImage.Image = targetThumb
+            TweenService:Create(AvatarImage, TweenInfo.new(0.5), {ImageTransparency = 0}):Play()
+        end
+
+        local placeId = tonumber(PlaceIdBox.Text) or game.PlaceId
+        updateProgress("🎯 Searching for " .. username .. " in Place " .. placeId .. "...")
+
+        -- Search loop
+        local cursor = nil
+        local totalSearched = 0
+
+        while searching and totalSearched < maxServers do
+            local success, result = getServers(placeId, cursor)
+            if not success then
+                updateProgress("❌ Failed to fetch servers. Retrying...", totalSearched / maxServers)
+                wait(1)
+                continue
+            end
+
+            local servers = result.data or {}
+            cursor = result.nextPageCursor
+
+            -- Process servers in batches
+            for i = 1, #servers, threads do
+                if not searching then break end
+                local batch = {}
+                for j = 1, math.min(threads, #servers - i + 1) do
+                    table.insert(batch, servers[i + j - 1])
+                end
+
+                spawn(function()
+                    for _, server in ipairs(batch) do
+                        if not searching then return end
+                        local thumbSuccess, thumbs = fetchThumbs(server.playerTokens or {})
+                        if thumbSuccess then
+                            playersFound = playersFound + #thumbs
+                            for _, thumb in ipairs(thumbs) do
+                                if thumb.state == "Completed" and thumb.imageUrl == targetThumb then
+                                    searching = false
+                                    updateProgress("✅ Found " .. username .. "! Teleporting...", 1)
+                                    StartButton.Text = "🚀 Start Sniping"
+                                    teleportToServer(placeId, server.id)
+                                    return
+                                end
+                            end
+                        end
+                        totalSearched = totalSearched + 1
+                        searched = totalSearched
+                        updateProgress("Scanned " .. totalSearched .. "/" .. maxServers .. " servers (" .. playersFound .. " players checked)", totalSearched / maxServers)
+                    end
+                end)
+                wait(0.1)  -- Small delay to avoid rate limits
+            end
+
+            if not cursor then
+                break
+            end
+
+            wait(0.5)  -- Page delay
+        end
+
+        if searching then
+            updateProgress("❌ " .. username .. " not found in public servers (try VIP? Or increase max servers).", 1)
+        end
+
+        searching = false
+        StartButton.Text = "🚀 Start Sniping"
+        ProgressBar.Size = UDim2.new(0, 0, 1, 0)
+    end)
+end
+
+StartButton.MouseButton1Click:Connect(startSearch)
+
+-- Set shared
+shared.STREAM_SNIPER = Screenguini
+
+-- Initial animation
+MainFrame.Size = UDim2.new(0, 0, 0, 0)
+TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 450, 0, 350)}):Play()
+
+print("Advanced Stream Sniper v2.0 loaded! Enhanced with modern UI, progress tracking, settings, and better error handling.")
